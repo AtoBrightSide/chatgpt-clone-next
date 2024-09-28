@@ -5,19 +5,19 @@ import { useState } from "react";
 import { MessageType } from '../../../lib/definitions';
 
 interface MessageInputProps {
-    addMessage: (message: Omit<MessageType, 'created_at' | 'updated_at'>) => Promise<void>;
+    addMessage: (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    parentId?: string | null;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ addMessage }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null }) => {
     const [value, setValue] = useState<string>("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (value.trim()) {
             await addMessage({
-                id: Date.now().toString(),
                 content: value,
-                parent_id: null,
+                parent_id: parentId,
                 version: 1,
                 sender: 'user',
             });

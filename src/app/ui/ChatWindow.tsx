@@ -2,8 +2,7 @@
 import { useState, useEffect } from 'react';
 import Chatbox from './Chatbox';
 import MessageInput from './MessageInput';
-
-import { createMessage } from '../../../lib/actions';
+import { createMessage, updateMessage } from '../../../lib/actions';
 import { MessageType } from '../../../lib/definitions';
 import { gptResponses } from '../../../lib/dummy-response';
 
@@ -11,29 +10,58 @@ const ChatWindow = () => {
     const [messages, setMessages] = useState<MessageType[]>([]);
 
     useEffect(() => {
-        // Fetch initial messages from the server if needed
+        // Fetch initial messages if needed
     }, []);
 
-    const addMessage = async (message: Omit<MessageType, 'created_at' | 'updated_at'>) => {
-        // Add user message
-        const newMessages = await createMessage(message);
-        setMessages(newMessages);
+    const addMessage = async (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => {
+        const userMessage = { ...message, sender: 'user', updated_at: new Date().toISOString() };
+        const newMessage = await createMessage(userMessage);
+        console.log('New user message:', newMessage);
+        if (newMessage) {
+            setMessages((prevMessages) => [...prevMessages, newMessage]);
 
-        // Simulate GPT response
-        const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
-        const updatedMessages = await createMessage({
-            id: Date.now().toString(),
-            content: gptResponse,
-            parent_id: null,
-            version: 1,
-            sender: 'gpt',
-        });
-        setMessages(updatedMessages);
+            const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
+            const gptMessage = {
+                content: gptResponse,
+                parent_id: newMessage.id,
+                version: 1,
+                sender: 'gpt',
+            };
+            const updatedMessage = await createMessage(gptMessage);
+            console.log('New GPT message:', updatedMessage);
+            if (updatedMessage) {
+                setMessages((prevMessages) => [...prevMessages, updatedMessage]);
+            }
+        }
+    };
+
+    const handleUpdateMessage = async (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => {
+        const newMessage = await updateMessage(updatedMessage);
+        console.log('Updated message:', newMessage);
+        if (newMessage) {
+            setMessages((prevMessages) =>
+                prevMessages.map((msg) => (msg.id === newMessage.parent_id ? newMessage : msg))
+            );
+
+            // Generate a new response from ChatGPT
+            const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
+            const gptMessage = {
+                content: gptResponse,
+                parent_id: newMessage.id,
+                version: 1,
+                sender: 'gpt',
+            };
+            const updatedGptMessage = await createMessage(gptMessage);
+            console.log('New GPT message:', updatedGptMessage);
+            if (updatedGptMessage) {
+                setMessages((prevMessages) => [...prevMessages, updatedGptMessage]);
+            }
+        }
     };
 
     return (
         <>
-            <Chatbox messages={messages} />
+            <Chatbox messages={messages} onUpdateMessage={handleUpdateMessage} />
             <MessageInput addMessage={addMessage} />
         </>
     );
