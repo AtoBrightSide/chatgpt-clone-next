@@ -56,8 +56,8 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
                         <div className='flex gap-x-4'>
                             {previousVersions.length > 0 && (
                                 <>
-                                    <select className="select select-ghost w-full max-w-xs" onChange={handleVersionChange}>
-                                        <option disabled>Previous Versions</option>
+                                    <select className="select select-ghost w-full max-w-xs" value={selectedVersion.version} onChange={handleVersionChange}>
+                                        <option>Previous Versions</option>
                                         {previousVersions.map((version) => (
                                             <option key={version.id} value={version.id}>Version {version.version}</option>
                                         ))}
@@ -67,7 +67,7 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
                             <PencilIcon onClick={() => setIsEditing(true)} className="w-6 opacity-50 hover:cursor-pointer hover:opacity-85" />
                         </div>
                     )}
-                    {isEditing && <EditMessage message={message} onSave={handleSave} />}
+                    {isEditing && <EditMessage message={selectedVersion} onSave={handleSave} />}
                 </div>
             </div>
         </div>
