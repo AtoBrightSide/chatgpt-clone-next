@@ -2,16 +2,25 @@
 import { useState, useEffect } from 'react';
 import Chatbox from './Chatbox';
 import MessageInput from './MessageInput';
-import { createMessage, updateMessage } from '../../../lib/actions';
+import { createMessage, getGptResponse, updateMessage } from '../../../lib/actions';
 import { MessageType } from '../../../lib/definitions';
 import { gptResponses } from '../../../lib/dummy-response';
 
 const ChatWindow = () => {
     const [messages, setMessages] = useState<MessageType[]>([]);
+    const [selectedVersion, setSelectedVersion] = useState<MessageType | null>(null);
 
     useEffect(() => {
-        // Fetch initial messages if needed
-    }, []);
+        const fetchGptResponses = async () => {
+            if (selectedVersion?.id) {
+                const response = await getGptResponse(selectedVersion.id);
+                if (response)
+                    setMessages((prevMessages) => [...prevMessages.slice(0, -1), response])
+            }
+
+        };
+        fetchGptResponses();
+    }, [selectedVersion]);
 
     const addMessage = async (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => {
         const userMessage = { ...message, sender: 'user', updated_at: new Date().toISOString() };
@@ -37,7 +46,6 @@ const ChatWindow = () => {
 
     const handleUpdateMessage = async (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => {
         const newMessage = await updateMessage(updatedMessage);
-        console.log('Updated message:', newMessage);
         if (newMessage) {
             setMessages((prevMessages) =>
                 prevMessages.map((msg) => (msg.id === newMessage.parent_id ? newMessage : msg))
@@ -52,16 +60,16 @@ const ChatWindow = () => {
                 sender: 'gpt',
             };
             const updatedGptMessage = await createMessage(gptMessage);
-            console.log('New GPT message:', updatedGptMessage);
+
             if (updatedGptMessage) {
-                setMessages((prevMessages) => [...prevMessages, updatedGptMessage]);
+                setMessages((prevMessages) => [...prevMessages.slice(0, -1), updatedGptMessage]);
             }
         }
     };
 
     return (
         <>
-            <Chatbox messages={messages} onUpdateMessage={handleUpdateMessage} />
+            <Chatbox messages={messages} onUpdateMessage={handleUpdateMessage} onSelectVersion={setSelectedVersion} />
             <MessageInput addMessage={addMessage} />
         </>
     );

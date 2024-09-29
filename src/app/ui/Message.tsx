@@ -4,14 +4,15 @@ import clsx from 'clsx';
 import { MessageType } from '../../../lib/definitions';
 import { PencilIcon } from '@heroicons/react/24/outline';
 import EditMessage from './EditMessage';
-import { getPreviousVersions } from '../../../lib/actions';
+import { getGptResponse, getPreviousVersions } from '../../../lib/actions';
 
 interface MessageProps {
     message: MessageType;
     onUpdateMessage: (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => void;
+    onSelectVersion: (version: MessageType) => void;
 }
 
-const Message: React.FC<MessageProps> = ({ message, onUpdateMessage }) => {
+const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVersion }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [previousVersions, setPreviousVersions] = useState<MessageType[]>([]);
     const [selectedVersion, setSelectedVersion] = useState<MessageType>(message);
@@ -19,21 +20,21 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage }) => {
     useEffect(() => {
         const fetchPreviousVersions = async () => {
             if (selectedVersion.parent_id) {
-                console.log("parent_id", selectedVersion.parent_id)
                 const versions = await getPreviousVersions(selectedVersion.parent_id);
                 setPreviousVersions(versions);
             }
 
         };
-        console.log("prev versions: ", previousVersions)
         fetchPreviousVersions();
-    }, [selectedVersion.parent_id]);
+    }, [selectedVersion]);
 
-    const handleSave = (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'> | null) => {
+    const handleSave = async (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'> | null) => {
         setIsEditing(false);
         if (updatedMessage) {
-            console.log(updatedMessage);
-            onUpdateMessage(updatedMessage);
+            await onUpdateMessage(updatedMessage);
+
+            const versions = await getPreviousVersions(message.parent_id || message.id);
+            setPreviousVersions(versions);
         }
     };
 
@@ -42,6 +43,7 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage }) => {
         const selected = previousVersions.find((version) => version.id === versionId);
         if (selected) {
             setSelectedVersion(selected);
+            onSelectVersion(selected);
         }
     };
 
