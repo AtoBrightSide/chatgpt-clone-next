@@ -15,3 +15,5 @@ This project is a simplified ChatGPT clone with a focus on implementing message 
 - **Frontend**: Next.js, TypeScript
 - **Backend**: Supabase (PostgreSQL)
 - **Styling**: Tailwind CSS
+
+## [Design](https://docs.google.com/document/d/1hVl3g3AoX6zgL4E7f3_BdgNlycq3vbxw2mZmFPqDiG8/edit?usp=sharing)
