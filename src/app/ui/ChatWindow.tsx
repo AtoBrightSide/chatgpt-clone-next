@@ -25,7 +25,7 @@ const ChatWindow = () => {
     const addMessage = async (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => {
         const userMessage = { ...message, sender: 'user', updated_at: new Date().toISOString() };
         const newMessage = await createMessage(userMessage);
-        console.log('New user message:', newMessage);
+        
         if (newMessage) {
             setMessages((prevMessages) => [...prevMessages, newMessage]);
 
@@ -37,7 +37,7 @@ const ChatWindow = () => {
                 sender: 'gpt',
             };
             const updatedMessage = await createMessage(gptMessage);
-            console.log('New GPT message:', updatedMessage);
+            
             if (updatedMessage) {
                 setMessages((prevMessages) => [...prevMessages, updatedMessage]);
             }
