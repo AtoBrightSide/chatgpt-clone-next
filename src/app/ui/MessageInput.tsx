@@ -30,7 +30,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null
             <form onSubmit={handleSubmit} className="flex">
                 <input
                     type="text"
-                    placeholder="Message ChatGPT"
+                    placeholder="Message Clone"
                     className="bg-inherit w-full border-none text-gray-900 rounded-lg focus:outline-none"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}

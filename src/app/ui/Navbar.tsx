@@ -1,7 +1,7 @@
 const Navbar = () => {
     return (
-        <div className="navbar bg-base-300">
-            <button className="btn btn-ghost text-xl">ChatGPT</button>
+        <div className="navbar">
+            <button className="btn btn-ghost text-xl">ChatGPT Clone</button>
         </div>
     );
 }
