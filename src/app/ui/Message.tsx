@@ -39,8 +39,8 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
     };
 
     const handleVersionChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-        const versionId = event.target.value;
-        const selected = previousVersions.find((version) => version.id === versionId);
+        const curr_version = Number(event.target.value);
+        const selected = previousVersions.find((version) => version.version === curr_version);
         if (selected) {
             setSelectedVersion(selected);
             onSelectVersion(selected);
@@ -57,9 +57,9 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
                             {previousVersions.length > 0 && (
                                 <>
                                     <select className="select select-ghost w-full max-w-xs" value={selectedVersion.version} onChange={handleVersionChange}>
-                                        <option>Previous Versions</option>
+                                        <option disabled>Previous Versions</option>
                                         {previousVersions.map((version) => (
-                                            <option key={version.id} value={version.id}>Version {version.version}</option>
+                                            <option key={version.id} value={version.version}>Version {version.version}</option>
                                         ))}
                                     </select>
                                 </>
