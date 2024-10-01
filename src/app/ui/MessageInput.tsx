@@ -27,7 +27,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null
     };
 
     return (
-        <div className="w-1/2 p-5 mb-5 bg-[#F4F4F4] rounded-full fixed bottom-0 shadow-lg">
+        <div className="w-4/5 md:w-1/2 p-3 md:p-5 mb-5 bg-[#F4F4F4] rounded-full fixed bottom-0 shadow-lg">
             <form onSubmit={handleSubmit} className="flex">
                 <input
                     type="text"
@@ -37,7 +37,7 @@ const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null
                     onChange={(e) => setValue(e.target.value)}
                 />
                 <button type="submit">
-                    <ArrowUpCircleIcon className="h-8 text-gray-500 hover:cursor-pointer hover:text-gray-700 transition-all" />
+                    <ArrowUpCircleIcon className="h-7 md:h-8 text-gray-500 hover:cursor-pointer hover:text-gray-700 transition-all" />
                 </button>
             </form>
         </div>

@@ -70,7 +70,7 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
             </div>
 
             <div className='chat chat-start'>
-                <div className="chat-bubble">
+                <div className="chat-bubble bg-[#b4c1d7ae] text-black">
                     {selectedVersion ? selectedVersion.gpt_response : message.gpt_response}
                 </div>
             </div>

@@ -12,11 +12,13 @@ const Chatbox: React.FC<ChatboxProps> = ({ messages, onUpdateMessage, onSelectVe
         <>
             {
                 messages.length !== 0 ?
-                    (<div className="py-32 px-20 w-full">
-                        {messages.map((msg) => (
-                            <Message key={msg.id} message={msg} onUpdateMessage={onUpdateMessage} onSelectVersion={onSelectVersion} />
-                        ))}
-                    </div>) : (
+                    (
+                        <div className="py-5 md:py-32 px-5 md:px-20 w-full">
+                            {messages.map((msg) => (
+                                <Message key={msg.id} message={msg} onUpdateMessage={onUpdateMessage} onSelectVersion={onSelectVersion} />
+                            ))}
+                        </div>
+                    ) : (
                         <div className="hero bg-inherit min-h-screen">
                             <div className="hero-content text-center">
                                 <div className="max-w-md">
