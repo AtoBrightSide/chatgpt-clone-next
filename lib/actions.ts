@@ -51,25 +51,22 @@ export async function getMessage(id: string): Promise<MessageType | null> {
 export async function updateMessage(message: Omit<MessageType, 'created_at'>): Promise<MessageType | null> {
     // Find the original message
     const originalMessage = await getMessage(message.id);
-    console.log("message to be edited: ", originalMessage)
-    
+
     // Increment the no_of_versions for the original message in the versions table
     let query = supabase.from('versions').select('*');
-
     if (originalMessage?.parent_id === null) {
         query = query.is('parent_id', null); // Use .is() to check for null
     } else {
         query = query.eq('parent_id', originalMessage?.parent_id);
     }
-
+    
     const { data: versionData, error: versionFetchError } = await query.single();
-
-
     if (versionFetchError || !versionData) {
         console.error('Error fetching version data:', versionFetchError);
         return null;
     }
 
+    // update no_of_versions for message being updated
     let query_ = supabase.from('versions').update({
         no_of_versions: versionData.no_of_versions + 1,
     });
@@ -87,11 +84,8 @@ export async function updateMessage(message: Omit<MessageType, 'created_at'>): P
         return null;
     }
 
-
-
-    // Create the new version of the message without the id
+    // Create the new version of the message without id and branch_id
     const { id, branch_id, ...messageWithoutId } = message;
-    console.log(messageWithoutId)
     const { data, error } = await supabase
         .from('messages')
         .insert([{
@@ -132,16 +126,22 @@ export async function getPreviousVersions(parentId: string | null): Promise<Mess
     return data
 }
 
-export async function getBranchMessages(branchId: string | null) {
+export async function getBranchMessages(branchId: string | null, startMessageCreatedAt: string | null) {
     let query = supabase
         .from('messages')
         .select('*')
         .order('created_at', { ascending: true });
 
+    // Handle null branchId cases
     if (branchId === null) {
-        query = query.is('branch_id', branchId);
+        query = query.is('branch_id', null);
     } else {
         query = query.eq('branch_id', branchId);
+    }
+
+    // Add a filter to get messages created on or after the startMessage's created_at
+    if (startMessageCreatedAt !== null) {
+        query = query.gte('created_at', startMessageCreatedAt);
     }
 
     const { data, error } = await query;

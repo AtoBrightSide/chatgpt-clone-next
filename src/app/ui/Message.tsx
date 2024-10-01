@@ -32,7 +32,6 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
             await onUpdateMessage(updatedMessage);
 
             const versions = await getPreviousVersions(message.parent_id);
-            console.log("versions: ", versions);
             setPreviousVersions(versions);
         }
     };

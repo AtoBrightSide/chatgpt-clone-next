@@ -13,19 +13,23 @@ const ChatWindow = () => {
 
     useEffect(() => {
         const fetchFollowUpMessages = async () => {
+            setCurrMessage(selectedVersion);
             if (selectedVersion?.id) {
-                const responses = await getBranchMessages(selectedVersion.branch_id);
-                console.log("branch message count: ", responses.length, "\nMessasges: ", responses)
+                const responses = await getBranchMessages(selectedVersion.branch_id, selectedVersion.created_at);
+                
                 if (responses) {
                     setMessages((prevMessages => {
+                        if (selectedVersion.parent_id === null) {
+                            return responses;
+                        }
                         let branchMessages = [...prevMessages];
                         let stopIndex = 0;
                         for (let i = 0; i < prevMessages.length; i++) {
-                            if (prevMessages[i].id === selectedVersion.id) {
+                            if (prevMessages[i].id === selectedVersion.parent_id) {
                                 stopIndex = i;
                             }
                         }
-                        branchMessages.splice(stopIndex);
+                        branchMessages.splice(stopIndex + 1);
 
                         return [...branchMessages, ...responses];
                     }));
@@ -52,7 +56,8 @@ const ChatWindow = () => {
         updatedMessage = { ...updatedMessage, gpt_response: gptResponses[Math.floor(Math.random() * gptResponses.length)] }
 
         const newMessage = await updateMessage(updatedMessage);
-        console.log("updated message: ", newMessage)
+        setCurrMessage(newMessage);
+
         if (newMessage) {
             setMessages((prevMessages) => {
                 let updatedPrevMessages = [...prevMessages];
@@ -72,7 +77,7 @@ const ChatWindow = () => {
     return (
         <>
             <Chatbox messages={messages} onUpdateMessage={handleUpdateMessage} onSelectVersion={setSelectedVersion} />
-            <MessageInput addMessage={addMessage} parentId={currMessage?.id} />
+            <MessageInput addMessage={addMessage} parentId={currMessage?.id} branch_id={currMessage?.branch_id} />
         </>
     );
 };
