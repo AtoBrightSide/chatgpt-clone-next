@@ -3,7 +3,7 @@
 import { MessageType, VersionType } from "./definitions";
 import { supabase } from "./supabaseClient";
 
-export async function createMessage(message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>): Promise<MessageType | null> {
+export async function createMessage(message: Omit<MessageType, 'id' | 'created_at'>): Promise<MessageType | null> {
     const { data, error } = await supabase
         .from('messages')
         .insert([message])
@@ -48,22 +48,12 @@ export async function getMessage(id: string): Promise<MessageType | null> {
     return data;
 }
 
-export async function updateMessage(message: Omit<MessageType, 'created_at' | 'updated_at'>): Promise<MessageType | null> {
+export async function updateMessage(message: Omit<MessageType, 'created_at'>): Promise<MessageType | null> {
     // Find the original message
-    // const { data: originalMessage, error: fetchError } = await supabase
-    //     .from('messages')
-    //     .select('*')
-    //     .eq('id', (message.parent_id === null ? message.id : message.parent_id))
-    //     .single();
-
-    // if (!originalMessage) {
-    //     console.error('Error fetching original message:', fetchError);
-    //     return null;
-    // }
     const originalMessage = await getMessage(message.id);
     console.log("message to be edited: ", originalMessage)
+    
     // Increment the no_of_versions for the original message in the versions table
-
     let query = supabase.from('versions').select('*');
 
     if (originalMessage?.parent_id === null) {

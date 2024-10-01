@@ -8,7 +8,7 @@ import { getPreviousVersions } from '../../../lib/actions';
 
 interface MessageProps {
     message: MessageType;
-    onUpdateMessage: (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => void;
+    onUpdateMessage: (updatedMessage: Omit<MessageType, 'created_at'>) => void;
     onSelectVersion: (version: MessageType) => void;
 }
 
@@ -26,7 +26,7 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
         fetchPreviousVersions();
     }, [selectedVersion]);
 
-    const handleSave = async (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'> | null) => {
+    const handleSave = async (updatedMessage: Omit<MessageType, 'created_at'> | null) => {
         setIsEditing(false);
         if (updatedMessage) {
             await onUpdateMessage(updatedMessage);

@@ -3,7 +3,7 @@ import Message from "./Message";
 
 interface ChatboxProps {
     messages: MessageType[];
-    onUpdateMessage: (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => void;
+    onUpdateMessage: (updatedMessage: Omit<MessageType, 'created_at'>) => void;
     onSelectVersion: (version: MessageType) => void;
 }
 

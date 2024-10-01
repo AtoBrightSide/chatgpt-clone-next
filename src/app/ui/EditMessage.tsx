@@ -4,7 +4,7 @@ import { MessageType } from '../../../lib/definitions';
 
 interface EditPromptProps {
     message: MessageType;
-    onSave: (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'> | null) => void;
+    onSave: (updatedMessage: Omit<MessageType, 'created_at'> | null) => void;
 }
 
 const EditPrompt: React.FC<EditPromptProps> = ({ message, onSave }) => {
