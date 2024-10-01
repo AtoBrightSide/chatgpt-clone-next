@@ -17,7 +17,7 @@ export async function createMessage(message: Omit<MessageType, 'id' | 'created_a
 
     // Insert an entry into the versions table
     const versionEntry: Omit<VersionType, 'id'> = {
-        parent_id: data.id,
+        parent_id: data.parent_id,
         no_of_versions: 1,
     };
 
@@ -53,7 +53,6 @@ export async function getGptResponse(id: string): Promise<MessageType | null> {
         .from('messages')
         .select('*')
         .eq('parent_id', id)
-        .eq('sender', 'gpt')
         .single();
 
     if (error) {
@@ -66,33 +65,47 @@ export async function getGptResponse(id: string): Promise<MessageType | null> {
 
 export async function updateMessage(message: Omit<MessageType, 'created_at' | 'updated_at'>): Promise<MessageType | null> {
     // Find the original message
-    const { data: originalMessage, error: fetchError } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('id', (message.parent_id === null ? message.id : message.parent_id))
-        .single();
+    // const { data: originalMessage, error: fetchError } = await supabase
+    //     .from('messages')
+    //     .select('*')
+    //     .eq('id', (message.parent_id === null ? message.id : message.parent_id))
+    //     .single();
 
-    if (fetchError || !originalMessage) {
-        console.error('Error fetching original message:', fetchError);
-        return null;
+    // if (!originalMessage) {
+    //     console.error('Error fetching original message:', fetchError);
+    //     return null;
+    // }
+    const originalMessage = await getMessage(message.id);
+    console.log("message to be edited: ", originalMessage)
+    // Increment the no_of_versions for the original message in the versions table
+
+    let query = supabase.from('versions').select('*');
+
+    if (originalMessage?.parent_id === null) {
+        query = query.is('parent_id', null); // Use .is() to check for null
+    } else {
+        query = query.eq('parent_id', originalMessage?.parent_id);
     }
 
-    // Increment the no_of_versions for the original message in the versions table
-    const { data: versionData, error: versionFetchError } = await supabase
-        .from('versions')
-        .select('*')
-        .eq('parent_id', originalMessage.id)
-        .single();
+    const { data: versionData, error: versionFetchError } = await query.single();
+
 
     if (versionFetchError || !versionData) {
         console.error('Error fetching version data:', versionFetchError);
         return null;
     }
 
-    const { error: versionUpdateError } = await supabase
-        .from('versions')
-        .update({ no_of_versions: versionData.no_of_versions + 1 })
-        .eq('parent_id', originalMessage.id);
+    let query_ = supabase.from('versions').update({
+        no_of_versions: versionData.no_of_versions + 1,
+    });
+
+    if (originalMessage?.parent_id === null) {
+        query_ = query_.is('parent_id', null); // Handle the null case
+    } else {
+        query_ = query_.eq('parent_id', originalMessage?.parent_id);
+    }
+
+    const { error: versionUpdateError } = await query_;
 
     if (versionUpdateError) {
         console.error('Error updating no_of_versions:', versionUpdateError);
@@ -100,13 +113,14 @@ export async function updateMessage(message: Omit<MessageType, 'created_at' | 'u
     }
 
 
+
     // Create the new version of the message without the id
-    const { id, ...messageWithoutId } = message;
+    const { id, branch_id, ...messageWithoutId } = message;
+    console.log(messageWithoutId)
     const { data, error } = await supabase
         .from('messages')
         .insert([{
             ...messageWithoutId,
-            parent_id: originalMessage.id, // Use the original message's id as parent_id
             version: versionData.no_of_versions + 1,
         }])
         .select()
@@ -121,23 +135,46 @@ export async function updateMessage(message: Omit<MessageType, 'created_at' | 'u
 }
 
 export async function getPreviousVersions(parentId: string | null): Promise<MessageType[]> {
-    const { data, error } = await supabase
+    let query = supabase
         .from('messages')
         .select('*')
-        .eq('parent_id', parentId)
-        .eq('sender', 'user')
         .order('version', { ascending: true });
+
+    if (parentId === null) {
+        query = query.is('parent_id', null); // Handle the case where parentId is null
+    } else {
+        query = query.eq('parent_id', parentId); // Handle non-null parentId
+    }
+
+    const { data, error } = await query;
 
     if (error) {
         console.error('Error fetching previous versions:', error);
         return [];
     }
 
-    if (parentId) {
-        const originalMessage = await getMessage(parentId);
-        console.log("originalMessage: ", data, originalMessage);
-        data.unshift(originalMessage)
-    }
 
     return data
+}
+
+export async function getBranchMessages(branchId: string | null) {
+    let query = supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+    if (branchId === null) {
+        query = query.is('branch_id', branchId);
+    } else {
+        query = query.eq('branch_id', branchId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+        console.error('Error fetching branch messages:', error);
+        return [];
+    }
+
+    return data;
 }

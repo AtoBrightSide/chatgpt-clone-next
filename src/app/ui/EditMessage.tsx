@@ -8,7 +8,7 @@ interface EditPromptProps {
 }
 
 const EditPrompt: React.FC<EditPromptProps> = ({ message, onSave }) => {
-    const [content, setContent] = useState<string>(message.content);
+    const [content, setContent] = useState<string>(message.user_message);
 
     const handleSave = () => {
         if (!message) {
@@ -17,7 +17,7 @@ const EditPrompt: React.FC<EditPromptProps> = ({ message, onSave }) => {
         }
         const updatedMessage = {
             ...message,
-            content,
+            user_message: content,
         };
         onSave(updatedMessage);
     };

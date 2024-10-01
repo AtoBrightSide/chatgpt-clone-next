@@ -19,10 +19,8 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
 
     useEffect(() => {
         const fetchPreviousVersions = async () => {
-            if (selectedVersion.parent_id) {
-                const versions = await getPreviousVersions(selectedVersion.parent_id);
-                setPreviousVersions(versions);
-            }
+            const versions = await getPreviousVersions(selectedVersion.parent_id);
+            setPreviousVersions(versions);
 
         };
         fetchPreviousVersions();
@@ -33,7 +31,8 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
         if (updatedMessage) {
             await onUpdateMessage(updatedMessage);
 
-            const versions = await getPreviousVersions(message.parent_id || message.id);
+            const versions = await getPreviousVersions(message.parent_id);
+            console.log("versions: ", versions);
             setPreviousVersions(versions);
         }
     };
@@ -49,25 +48,31 @@ const Message: React.FC<MessageProps> = ({ message, onUpdateMessage, onSelectVer
 
     return (
         <div>
-            <div className={clsx('chat', { 'chat-start': message.sender === 'gpt' }, { 'chat-end': message.sender === 'user' })}>
-                <div className="chat-bubble">{selectedVersion ? selectedVersion.content : message.content}</div>
+            <div className='chat chat-end'>
+                <div className="chat-bubble">
+                    {selectedVersion ? selectedVersion.user_message : message.user_message}
+                </div>
                 <div className="chat-footer flex flex-col items-end mt-2">
-                    {message.sender === 'user' && (
-                        <div className='flex gap-x-4'>
-                            {previousVersions.length > 0 && (
-                                <>
-                                    <select className="select select-ghost w-full max-w-xs" value={selectedVersion.version} onChange={handleVersionChange}>
-                                        <option disabled>Previous Versions</option>
-                                        {previousVersions.map((version) => (
-                                            <option key={version.id} value={version.version}>Version {version.version}</option>
-                                        ))}
-                                    </select>
-                                </>
-                            )}
-                            <PencilIcon onClick={() => setIsEditing(true)} className="w-6 opacity-50 hover:cursor-pointer hover:opacity-85" />
-                        </div>
-                    )}
+                    <div className='flex gap-x-4'>
+                        {previousVersions.length > 1 && (
+                            <>
+                                <select className="select select-ghost w-full max-w-xs" value={selectedVersion.version} onChange={handleVersionChange}>
+                                    <option disabled>Previous Versions</option>
+                                    {previousVersions.map((version) => (
+                                        <option key={version.id} value={version.version}>Version {version.version}</option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+                        <PencilIcon onClick={() => setIsEditing(true)} className="w-6 opacity-50 hover:cursor-pointer hover:opacity-85" />
+                    </div>
                     {isEditing && <EditMessage message={selectedVersion} onSave={handleSave} />}
+                </div>
+            </div>
+
+            <div className='chat chat-start'>
+                <div className="chat-bubble">
+                    {selectedVersion ? selectedVersion.gpt_response : message.gpt_response}
                 </div>
             </div>
         </div>

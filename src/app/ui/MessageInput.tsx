@@ -5,21 +5,22 @@ import { useState } from "react";
 import { MessageType } from '../../../lib/definitions';
 
 interface MessageInputProps {
-    addMessage: (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+    addMessage: (message: Omit<MessageType, 'id' | 'created_at' | 'gpt_response'>) => Promise<void>;
     parentId?: string | null;
+    branch_id?: string | null;
 }
 
-const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null }) => {
+const MessageInput: React.FC<MessageInputProps> = ({ addMessage, parentId = null, branch_id = null }) => {
     const [value, setValue] = useState<string>("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (value.trim()) {
             await addMessage({
-                content: value,
+                user_message: value,
                 parent_id: parentId,
+                branch_id: branch_id,
                 version: 1,
-                sender: 'user',
             });
             setValue("");
         }
