@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Chatbox from './Chatbox';
 import MessageInput from './MessageInput';
-import { createMessage, getBranchMessages, getGptResponse, updateMessage } from '../../../lib/actions';
+import { createMessage, getBranchMessages, updateMessage } from '../../../lib/actions';
 import { MessageType } from '../../../lib/definitions';
 import { gptResponses } from '../../../lib/dummy-response';
 

@@ -48,21 +48,6 @@ export async function getMessage(id: string): Promise<MessageType | null> {
     return data;
 }
 
-export async function getGptResponse(id: string): Promise<MessageType | null> {
-    const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('parent_id', id)
-        .single();
-
-    if (error) {
-        console.error('Error fetching response: ', error);
-        return null
-    }
-
-    return data;
-}
-
 export async function updateMessage(message: Omit<MessageType, 'created_at' | 'updated_at'>): Promise<MessageType | null> {
     // Find the original message
     // const { data: originalMessage, error: fetchError } = await supabase

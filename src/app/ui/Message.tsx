@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { MessageType } from '../../../lib/definitions';
 import { PencilIcon } from '@heroicons/react/24/outline';
 import EditMessage from './EditMessage';
-import { getGptResponse, getPreviousVersions } from '../../../lib/actions';
+import { getPreviousVersions } from '../../../lib/actions';
 
 interface MessageProps {
     message: MessageType;
