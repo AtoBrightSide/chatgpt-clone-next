@@ -4,11 +4,11 @@ import { MessageType } from '../../../lib/definitions';
 
 interface EditPromptProps {
     message: MessageType;
-    onSave: (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'> | null) => void;
+    onSave: (updatedMessage: Omit<MessageType, 'created_at'> | null) => void;
 }
 
 const EditPrompt: React.FC<EditPromptProps> = ({ message, onSave }) => {
-    const [content, setContent] = useState<string>(message.content);
+    const [content, setContent] = useState<string>(message.user_message);
 
     const handleSave = () => {
         if (!message) {
@@ -17,7 +17,7 @@ const EditPrompt: React.FC<EditPromptProps> = ({ message, onSave }) => {
         }
         const updatedMessage = {
             ...message,
-            content,
+            user_message: content,
         };
         onSave(updatedMessage);
     };

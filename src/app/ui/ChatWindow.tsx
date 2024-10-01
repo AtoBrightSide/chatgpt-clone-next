@@ -2,75 +2,82 @@
 import { useState, useEffect } from 'react';
 import Chatbox from './Chatbox';
 import MessageInput from './MessageInput';
-import { createMessage, getGptResponse, updateMessage } from '../../../lib/actions';
+import { createMessage, getBranchMessages, updateMessage } from '../../../lib/actions';
 import { MessageType } from '../../../lib/definitions';
 import { gptResponses } from '../../../lib/dummy-response';
 
 const ChatWindow = () => {
     const [messages, setMessages] = useState<MessageType[]>([]);
     const [selectedVersion, setSelectedVersion] = useState<MessageType | null>(null);
+    const [currMessage, setCurrMessage] = useState<MessageType | null>(null);
 
     useEffect(() => {
-        const fetchGptResponses = async () => {
+        const fetchFollowUpMessages = async () => {
+            setCurrMessage(selectedVersion);
             if (selectedVersion?.id) {
-                const response = await getGptResponse(selectedVersion.id);
-                if (response)
-                    setMessages((prevMessages) => [...prevMessages.slice(0, -1), response])
-            }
+                const responses = await getBranchMessages(selectedVersion.branch_id, selectedVersion.created_at);
+                
+                if (responses) {
+                    setMessages((prevMessages => {
+                        if (selectedVersion.parent_id === null) {
+                            return responses;
+                        }
+                        let branchMessages = [...prevMessages];
+                        let stopIndex = 0;
+                        for (let i = 0; i < prevMessages.length; i++) {
+                            if (prevMessages[i].id === selectedVersion.parent_id) {
+                                stopIndex = i;
+                            }
+                        }
+                        branchMessages.splice(stopIndex + 1);
 
+                        return [...branchMessages, ...responses];
+                    }));
+                }
+            }
         };
-        fetchGptResponses();
+        fetchFollowUpMessages();
     }, [selectedVersion]);
 
-    const addMessage = async (message: Omit<MessageType, 'id' | 'created_at' | 'updated_at'>) => {
-        const userMessage = { ...message, sender: 'user', updated_at: new Date().toISOString() };
+    const addMessage = async (message: Omit<MessageType, 'id' | 'created_at' | 'gpt_response'>) => {
+        // simulateGpt response
+        const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
+        const userMessage = { ...message, gpt_response: gptResponse };
+
         const newMessage = await createMessage(userMessage);
-        
+        setCurrMessage(newMessage);
+
         if (newMessage) {
             setMessages((prevMessages) => [...prevMessages, newMessage]);
-
-            const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
-            const gptMessage = {
-                content: gptResponse,
-                parent_id: newMessage.id,
-                version: 1,
-                sender: 'gpt',
-            };
-            const updatedMessage = await createMessage(gptMessage);
-            
-            if (updatedMessage) {
-                setMessages((prevMessages) => [...prevMessages, updatedMessage]);
-            }
         }
     };
 
     const handleUpdateMessage = async (updatedMessage: Omit<MessageType, 'created_at' | 'updated_at'>) => {
+        updatedMessage = { ...updatedMessage, gpt_response: gptResponses[Math.floor(Math.random() * gptResponses.length)] }
+
         const newMessage = await updateMessage(updatedMessage);
+        setCurrMessage(newMessage);
+
         if (newMessage) {
-            setMessages((prevMessages) =>
-                prevMessages.map((msg) => (msg.id === newMessage.parent_id ? newMessage : msg))
-            );
-
-            // Generate a new response from ChatGPT
-            const gptResponse = gptResponses[Math.floor(Math.random() * gptResponses.length)];
-            const gptMessage = {
-                content: gptResponse,
-                parent_id: newMessage.id,
-                version: 1,
-                sender: 'gpt',
-            };
-            const updatedGptMessage = await createMessage(gptMessage);
-
-            if (updatedGptMessage) {
-                setMessages((prevMessages) => [...prevMessages.slice(0, -1), updatedGptMessage]);
-            }
+            setMessages((prevMessages) => {
+                let updatedPrevMessages = [...prevMessages];
+                let stopIndex = 0;
+                for (let i = 0; i < prevMessages.length; i++) {
+                    if (prevMessages[i].parent_id === newMessage.parent_id) {
+                        stopIndex = i;
+                    }
+                }
+                updatedPrevMessages.splice(stopIndex);
+                updatedPrevMessages.push(newMessage);
+                return updatedPrevMessages;
+            });
         }
     };
 
     return (
         <>
             <Chatbox messages={messages} onUpdateMessage={handleUpdateMessage} onSelectVersion={setSelectedVersion} />
-            <MessageInput addMessage={addMessage} />
+            <MessageInput addMessage={addMessage} parentId={currMessage?.id} branch_id={currMessage?.branch_id} />
         </>
     );
 };

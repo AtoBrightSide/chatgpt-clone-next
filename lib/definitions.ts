@@ -1,11 +1,11 @@
 export type MessageType = {
     id: string;
-    content: string;
+    user_message: string;
+    gpt_response: string;
     parent_id: string | null;
+    branch_id: string | null;
     version: number;
     created_at: string;
-    updated_at: string;
-    sender: string;
 }
 
 export type VersionType = {
